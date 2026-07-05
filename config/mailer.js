@@ -1,18 +1,12 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import { config } from "dotenv";
 config();
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_APP_PASSWORD,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const sendResetPasswordEmail = async (toEmail, resetLink) => {
-  await transporter.sendMail({
-    from: `"Ganesha Operation" <${process.env.EMAIL_USER}>`,
+  const { data, error } = await resend.emails.send({
+    from: "Ganesha Operation <onboarding@resend.dev>",
     to: toEmail,
     subject: "Reset Password - Ganesha Operation",
     html: `
@@ -28,4 +22,10 @@ export const sendResetPasswordEmail = async (toEmail, resetLink) => {
       </div>
     `,
   });
+
+  if (error) {
+    throw new Error(error.message || "Gagal mengirim email");
+  }
+
+  return data;
 };
